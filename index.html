@@ -15,13 +15,13 @@
 <body>
     <nav id="nav" class="navbar bg-secondary">
         <div class="container-fluid">
-          <a class="navbar-brand mx-auto" href="#">
-            <img src="https://raw.githubusercontent.com/rtb131/assets/main/red_logo.png" width=80px alt="">
-            <span class="fs-1 text-white align-middle">Raison D'etre Pool Delegators</span>
-          </a>
-          
+            <a class="navbar-brand mx-auto" href="#">
+                <img src="https://raw.githubusercontent.com/rtb131/assets/main/red_logo.png" width=80px alt="">
+                <span class="fs-1 text-white align-middle">Raison D'etre Pool Delegators</span>
+            </a>
+
         </div>
-      </nav>
+    </nav>
 
     <div class="container">
         <div id="input" class="input-group mb-3">
@@ -33,7 +33,8 @@
                 onkeydown="if (event.keyCode == 13) document.getElementById('getDelegatorsButton').click()">
 
             <button id="getDelegatorsButton" class="btn btn-dark btn-outline-secondary text-white"
-                onclick="getDelegators()">Get Delegators</button>
+                onclick="getDelegators2()">Get
+                Delegators</button>
 
             <button id="exportButton" class="bi bi-file-earmark-spreadsheet btn btn-dark btn-outline-success text-white"
                 style="display:none" onclick="ExportToExcel('xlsx')"> Export Data</button>
@@ -45,6 +46,8 @@
                     <th>#</th>
                     <th>Stake Address</th>
                     <th>Amount (₳)</th>
+                    <th>Since Epoch</th>
+                    <th>Full Epochs Staked</th>
                 </tr>
             </thead>
             <tbody id="data">
@@ -54,10 +57,10 @@
 
 </body>
 <style>
-
     #nav {
         background-image: linear-gradient(to right top, #370505, #2c0608, #220509, #160206, #000000);
     }
+
     #minAmount {
         max-width: 200px
     }
@@ -70,62 +73,107 @@
     .container {
         margin-top: 50px
     }
-
 </style>
 <script>
-
     const apiKey = 'mainnetLttamuf9FTGQnt8Ca8PAZYH3wO42u0ic'
-    const poolId = 'e116bf936475165924795ae3f2dda01ab4a893ad8444a1364dd5886b'
+    const poolId = 'pool1uyttlymyw5t9jfrett3l9hdqr2623yads3z2zdjd6kyxkg8hpn7'
     const url = `https://cardano-mainnet.blockfrost.io/api/v0/pools/${poolId}/delegators`
-    
+    const requestOptions = { method: 'GET', headers: { 'Content-Type': 'application/json', 'project_id': apiKey } }
 
-    function getDelegators() {
+    async function getDelegators2() {
+        class HttpClient {
+            constructor(options = {}) {
+                this._baseURL = options.baseURL || "";
+                this._headers = options.headers || {};
+            }
+
+            async _fetchJSON(endpoint, options = {}) {
+                const res = await fetch(this._baseURL + endpoint, {
+                    ...options,
+                    headers: this._headers
+                });
+
+                if (!res.ok) throw new Error(res.statusText);
+
+                if (options.parseResponse !== false && res.status !== 204)
+                    return res.json();
+
+                return undefined;
+            }
+
+            setHeader(key, value) {
+                this._headers[key] = value;
+                return this;
+            }
+
+            getHeader(key) {
+                return this._headers[key];
+            }
+
+            get(endpoint, options = {}) {
+                return this._fetchJSON(endpoint, {
+                    ...options,
+                    method: "GET"
+                });
+            }
+
+        }
+
+        const httpClient = new HttpClient({ baseURL: 'https://cardano-mainnet.blockfrost.io/api/v0' })
+            .setHeader('project_id', apiKey)
+
         let id = 1
-        document.getElementById("exportButton").style.display = "none";
-
-        minAmount = document.getElementById('minAmount').value
+        let temp = ''
+        let minAmount = document.getElementById('minAmount').value
         if (minAmount == '') { minAmount = 0 }
-        let temp = "";
+
+        document.getElementById("exportButton").style.display = "none";
 
         if (isNaN(minAmount)) {
             alert("Please enter a valid minimum Amount")
-        } else {
-            fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'project_id': apiKey
-                }
-            }).then(
-                res => {
-                    res.json().then(
-                        data => {
-                            console.log(data);
+        }
 
-                            if (data.length > 0) {
+        let currentEpoch = await httpClient.get(`/epochs/latest`)
+        currentEpoch = currentEpoch.epoch
 
-                                data.forEach((itemData) => {
-                                    amount = (itemData.live_stake / 1000000).toFixed(2)
-                                    console.log("amount:" + amount + " minAmount:" + minAmount)
+        const delegators = await httpClient.get(`/pools/${poolId}/delegators`)
 
-                                    // only write addresses into table that stake at least minAmount ADA into the pool
-                                    if (amount > parseFloat(minAmount)) {
-                                        temp += "<tr>";
-                                        temp += "<td>" + id++ + "</td>";
-                                        temp += "<td>" + itemData.address + "</td>";
-                                        temp += "<td>" + amount + "</td></tr>";
-                                    }
-                                });
+        if (delegators.length > 0) {
+            for await (delegator of delegators) {
 
-                                if (temp) {
-                                    document.getElementById("exportButton").style.display = "block";
-                                }
-                                document.getElementById('data').innerHTML = temp;
+                let stake_address = delegator.address
+                let amount = (delegator.live_stake / 1000000).toFixed(2)
+
+                if (amount > parseFloat(minAmount)) {
+                    const delegationInfo = await httpClient.get(`/accounts/${stake_address}/delegations`)
+
+                    let sinceEpoch = ''
+                    for await (info of delegationInfo) {
+
+                        if (info.pool_id == poolId) {
+                            if (!sinceEpoch) {
+                                sinceEpoch = info.active_epoch - 2
+                                console.log(info.active_epoch)
                             }
                         }
-                    )
+                    }
+
+                    let consecutiveEpochsStaked = parseInt(currentEpoch) - parseInt(sinceEpoch)
+
+                    temp += "<tr>";
+                    temp += "<td>" + id++ + "</td>";
+                    temp += "<td>" + stake_address + "</td>";
+                    temp += "<td>" + amount + "</td>";
+                    temp += "<td>" + sinceEpoch + "</td>";
+                    temp += "<td>" + consecutiveEpochsStaked + "</td></tr>";
+
+                    if (temp) {
+                        document.getElementById("exportButton").style.display = "block";
+                    }
+
+                    document.getElementById('data').innerHTML = temp;
                 }
-            )
+            }
         }
     }
 
