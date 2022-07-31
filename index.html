@@ -138,7 +138,7 @@
 
         document.getElementById("exportButton").style.display = "none";
 
-        if (isNaN(minAmount)) {
+        if (isNaN(minAmount) || isNaN(minEpochs)) {
             alert("Please enter a valid minimum Amount")
         }
 
