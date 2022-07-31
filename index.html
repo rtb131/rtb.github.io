@@ -12,12 +12,14 @@
     <script type="text/javascript" src="https://unpkg.com/xlsx@0.15.1/dist/xlsx.full.min.js"></script>
 </head>
 
-<body>
+<body onload="getDelegators()">
     <nav id="nav" class="navbar bg-secondary">
-        <div class="container-fluid">
-            <a class="navbar-brand mx-auto" href="#">
+        <div id="header" class="container-fluid" style="display: invisible">
+            <a class="navbar-brand mx-auto .text-center"
+                href="https://adapools.org/pool/e116bf936475165924795ae3f2dda01ab4a893ad8444a1364dd5886b">
+                <span id="poolName" class="fs-1 text-white align-middle">[RTB] Pool</span>
                 <img src="https://raw.githubusercontent.com/rtb131/assets/main/red_logo.png" width=80px alt="">
-                <span class="fs-1 text-white align-middle">Raison D'etre Pool Delegators</span>
+                <span id="currentEpoch" class="fs-1 text-white align-middle">Epoch 000</span>
             </a>
 
         </div>
@@ -54,7 +56,7 @@
                     <th>Stake Address</th>
                     <th>Amount (₳)</th>
                     <th>Since Epoch</th>
-                    <th>Full Epochs Staked</th>
+                    <th>Epochs Staked</th>
                 </tr>
             </thead>
             <tbody id="data">
@@ -142,6 +144,8 @@
 
         let currentEpoch = await httpClient.get(`/epochs/latest`)
         currentEpoch = currentEpoch.epoch
+
+        document.getElementById("currentEpoch").innerHTML = "Epoch " + currentEpoch
 
         const delegators = await httpClient.get(`/pools/${poolId}/delegators`)
 
