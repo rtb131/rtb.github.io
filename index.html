@@ -32,8 +32,15 @@
                 onkeypress='return event.charCode >= 48 && event.charCode <= 57'
                 onkeydown="if (event.keyCode == 13) document.getElementById('getDelegatorsButton').click()">
 
+            <div class="input-group-prepend">
+                <span class="input-group-text">Minimum Epochs</span>
+            </div>
+            <input id="minEpochs" type="number" class="form-control"
+                onkeypress='return event.charCode >= 48 && event.charCode <= 57'
+                onkeydown="if (event.keyCode == 13) document.getElementById('getDelegatorsButton').click()">
+
             <button id="getDelegatorsButton" class="btn btn-dark btn-outline-secondary text-white"
-                onclick="getDelegators2()">Get
+                onclick="getDelegators()">Get
                 Delegators</button>
 
             <button id="exportButton" class="bi bi-file-earmark-spreadsheet btn btn-dark btn-outline-success text-white"
@@ -61,10 +68,10 @@
         background-image: linear-gradient(to right top, #370505, #2c0608, #220509, #160206, #000000);
     }
 
-    #minAmount {
-        max-width: 200px
+    .form-control {
+        max-width: 200px;
+        margin-right: 20px
     }
-
 
     body {
         background-color: black;
@@ -80,7 +87,7 @@
     const url = `https://cardano-mainnet.blockfrost.io/api/v0/pools/${poolId}/delegators`
     const requestOptions = { method: 'GET', headers: { 'Content-Type': 'application/json', 'project_id': apiKey } }
 
-    async function getDelegators2() {
+    async function getDelegators() {
         class HttpClient {
             constructor(options = {}) {
                 this._baseURL = options.baseURL || "";
@@ -123,8 +130,9 @@
             .setHeader('project_id', apiKey)
 
         let id = 1
-        let temp = ''
+        let table = ''
         let minAmount = document.getElementById('minAmount').value
+        let minEpochs = document.getElementById('minEpochs').value
         if (minAmount == '') { minAmount = 0 }
 
         document.getElementById("exportButton").style.display = "none";
@@ -144,7 +152,7 @@
                 let stake_address = delegator.address
                 let amount = (delegator.live_stake / 1000000).toFixed(2)
 
-                if (amount > parseFloat(minAmount)) {
+                if (amount >= parseFloat(minAmount)) {
                     const delegationInfo = await httpClient.get(`/accounts/${stake_address}/delegations`)
 
                     let sinceEpoch = ''
@@ -160,18 +168,20 @@
 
                     let consecutiveEpochsStaked = parseInt(currentEpoch) - parseInt(sinceEpoch)
 
-                    temp += "<tr>";
-                    temp += "<td>" + id++ + "</td>";
-                    temp += "<td>" + stake_address + "</td>";
-                    temp += "<td>" + amount + "</td>";
-                    temp += "<td>" + sinceEpoch + "</td>";
-                    temp += "<td>" + consecutiveEpochsStaked + "</td></tr>";
+                    if (minEpochs <= consecutiveEpochsStaked) {
+                        table += "<tr>";
+                        table += "<td>" + id++ + "</td>";
+                        table += "<td>" + stake_address + "</td>";
+                        table += "<td>" + amount + "</td>";
+                        table += "<td>" + sinceEpoch + "</td>";
+                        table += "<td>" + consecutiveEpochsStaked + "</td></tr>";
+                    }
 
-                    if (temp) {
+                    if (table) {
                         document.getElementById("exportButton").style.display = "block";
                     }
 
-                    document.getElementById('data').innerHTML = temp;
+                    document.getElementById('data').innerHTML = table;
                 }
             }
         }
