@@ -142,7 +142,7 @@
             alert("Please enter a valid minimum Amount")
         }
 
-        let currentEpoch = await httpClient.get(`/epochs/latest`)
+        let currentEpoch = await httpClient.get('/epochs/latest')
         currentEpoch = currentEpoch.epoch
 
         document.getElementById("currentEpoch").innerHTML = "Epoch " + currentEpoch
