@@ -55,8 +55,8 @@
                     <th>#</th>
                     <th>Stake Address</th>
                     <th>Amount (₳)</th>
-                    <th>Since Epoch</th>
-                    <th>Epochs Staked</th>
+                    <th>Consecutive Epochs Staked</th>
+                    <th>Since</th>
                 </tr>
             </thead>
             <tbody id="data">
@@ -175,8 +175,8 @@
                         table += "<td>" + id++ + "</td>";
                         table += "<td>" + stake_address + "</td>";
                         table += "<td>" + amount + "</td>";
-                        table += "<td>" + sinceEpoch + "</td>";
-                        table += "<td>" + consecutiveEpochsStaked + "</td></tr>";
+                        table += "<td>" + consecutiveEpochsStaked + "</td>";
+                        table += "<td>" + sinceEpoch + "</td></tr>";
                     }
 
                     if (table) {
