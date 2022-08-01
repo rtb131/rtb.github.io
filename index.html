@@ -10,6 +10,9 @@
         integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
     <script type="text/javascript" src="https://unpkg.com/xlsx@0.15.1/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="loading-bar.min.css"/>
+    <script type="text/javascript" src="loading-bar.min.js"></script>
+
 </head>
 
 <body onload="getDelegators()">
@@ -62,6 +65,7 @@
             <tbody id="data">
             </tbody>
         </table>
+        <div id="progress" class="ldBar mx-auto label-center" data-value="0" data-preset="circle" style="display: none"></div>
     </div>
 
 </body>
@@ -82,10 +86,25 @@
     .container {
         margin-top: 50px
     }
+
+    .ldBar-label {
+        color: red;
+        font-size: 1.5em;
+        font-weight: 500;
+    }
+
+    .ldBar path.mainline {
+        stroke-width: 5;
+        stroke: red;
+        stroke-linecap: round;
+    }
+    
+
 </style>
 <script>
     const apiKey = 'mainnetLttamuf9FTGQnt8Ca8PAZYH3wO42u0ic'
     const rtbPoolId = 'pool1uyttlymyw5t9jfrett3l9hdqr2623yads3z2zdjd6kyxkg8hpn7'
+    bar1 = new ldBar("#progress");
 
     async function getDelegators() {
         class HttpClient {
@@ -129,12 +148,15 @@
         const httpClient = new HttpClient({ baseURL: 'https://cardano-mainnet.blockfrost.io/api/v0' })
             .setHeader('project_id', apiKey)
 
+
+        
         let id = 1
         let table = ''
         let minAmount = document.getElementById('minAmount').value
         let minEpochs = document.getElementById('minEpochs').value
         if (minAmount == '') { minAmount = 0 }
 
+        document.getElementById("progress").style.display = "block";
         document.getElementById("exportButton").style.display = "none";
 
         if (isNaN(minAmount) || isNaN(minEpochs)) {
@@ -149,8 +171,9 @@
         const delegators = await httpClient.get(`/pools/${rtbPoolId}/delegators`)
 
         if (delegators.length > 0) {
-            for await (delegator of delegators) {
-
+            for await (let [index, delegator] of delegators.entries()) {
+                
+                bar1.set((100 / delegators.length) * (index+1));
                 let stake_address = delegator.address
                 let amount = (delegator.live_stake / 1000000).toFixed(2)
 
@@ -177,13 +200,15 @@
                         table += "<td>" + sinceEpoch + "</td></tr>";
                     }
 
-                    if (table) {
-                        document.getElementById("exportButton").style.display = "block";
-                    }
-
-                    document.getElementById('data').innerHTML = table;
                 }
             }
+
+            if (table) {
+                document.getElementById("exportButton").style.display = "block";
+            }
+
+            document.getElementById("progress").style.display = "none";
+            document.getElementById('data').innerHTML = table;
         }
     }
 
