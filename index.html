@@ -149,7 +149,9 @@
         const httpClient = new HttpClient({ baseURL: 'https://cardano-mainnet.blockfrost.io/api/v0' })
             .setHeader('project_id', apiKey)
 
-
+        document.querySelector('#exportButton').disabled = true;
+        document.getElementById('data').innerHTML = "";
+        document.getElementById("progress").style.display = "block";
         
         let id = 1
         let table = ''
@@ -157,8 +159,6 @@
         let minEpochs = document.getElementById('minEpochs').value
         if (minAmount == '') { minAmount = 0 }
 
-        document.getElementById('data').innerHTML = "";
-        document.getElementById("progress").style.display = "block";
 
         if (isNaN(minAmount) || isNaN(minEpochs)) {
             alert("Please enter a valid minimum Amount")
