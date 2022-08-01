@@ -48,8 +48,7 @@
                 onclick="getDelegators()">Get
                 Delegators</button>
 
-            <button id="exportButton" class="bi bi-file-earmark-spreadsheet btn btn-dark btn-outline-success text-white"
-                style="display:none" onclick="ExportToExcel('xlsx')"> Export Data</button>
+            <button id="exportButton" class="bi bi-file-earmark-spreadsheet btn btn-dark btn-outline-success text-white" onclick="ExportToExcel('xlsx')"> Export Data</button>
         </div>
 
         <table id="table_data" class="table table-striped table-dark table-bordered border-secondary">
@@ -84,7 +83,8 @@
     }
 
     .container {
-        margin-top: 50px
+        margin-top: 50px;
+        width: 1024px
     }
 
     .ldBar-label {
@@ -102,6 +102,7 @@
 
 </style>
 <script>
+    document.querySelector('#exportButton').disabled = true;
     const apiKey = 'mainnetLttamuf9FTGQnt8Ca8PAZYH3wO42u0ic'
     const rtbPoolId = 'pool1uyttlymyw5t9jfrett3l9hdqr2623yads3z2zdjd6kyxkg8hpn7'
     bar1 = new ldBar("#progress");
@@ -156,8 +157,8 @@
         let minEpochs = document.getElementById('minEpochs').value
         if (minAmount == '') { minAmount = 0 }
 
+        document.getElementById('data').innerHTML = "";
         document.getElementById("progress").style.display = "block";
-        document.getElementById("exportButton").style.display = "none";
 
         if (isNaN(minAmount) || isNaN(minEpochs)) {
             alert("Please enter a valid minimum Amount")
@@ -204,7 +205,7 @@
             }
 
             if (table) {
-                document.getElementById("exportButton").style.display = "block";
+                document.querySelector('#exportButton').disabled = false;
             }
 
             document.getElementById("progress").style.display = "none";
