@@ -161,10 +161,10 @@
                     let sinceEpoch = ''
                     for await (info of delegationInfo) {
 
-                        if (info.pool_id == poolId) {
-                            if (!sinceEpoch) {
+                        if (info.pool_id == poolId && !sinceEpoch) {
                                 sinceEpoch = info.active_epoch - 2
-                            }
+                        } else {
+                            sinceEpoch = ''
                         }
                     }
 
