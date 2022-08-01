@@ -30,14 +30,14 @@
             <div class="input-group-prepend">
                 <span class="input-group-text">Minimum Amount ₳</span>
             </div>
-            <input id="minAmount" type="number" class="form-control"
+            <input id="minAmount" min="0" type="number" class="form-control"
                 onkeypress='return event.charCode >= 48 && event.charCode <= 57'
                 onkeydown="if (event.keyCode == 13) document.getElementById('getDelegatorsButton').click()">
 
             <div class="input-group-prepend">
                 <span class="input-group-text">Minimum Epochs</span>
             </div>
-            <input id="minEpochs" type="number" class="form-control"
+            <input id="minEpochs" min="0" type="number" class="form-control"
                 onkeypress='return event.charCode >= 48 && event.charCode <= 57'
                 onkeydown="if (event.keyCode == 13) document.getElementById('getDelegatorsButton').click()">
 
@@ -85,8 +85,7 @@
 </style>
 <script>
     const apiKey = 'mainnetLttamuf9FTGQnt8Ca8PAZYH3wO42u0ic'
-    const poolId = 'pool1uyttlymyw5t9jfrett3l9hdqr2623yads3z2zdjd6kyxkg8hpn7'
-    const url = `https://cardano-mainnet.blockfrost.io/api/v0/pools/${poolId}/delegators`
+    const rtbPoolId = 'pool1uyttlymyw5t9jfrett3l9hdqr2623yads3z2zdjd6kyxkg8hpn7'
 
     async function getDelegators() {
         class HttpClient {
@@ -147,7 +146,7 @@
 
         document.getElementById("currentEpoch").innerHTML = "Epoch " + currentEpoch
 
-        const delegators = await httpClient.get(`/pools/${poolId}/delegators`)
+        const delegators = await httpClient.get(`/pools/${rtbPoolId}/delegators`)
 
         if (delegators.length > 0) {
             for await (delegator of delegators) {
@@ -160,8 +159,7 @@
 
                     let sinceEpoch = ''
                     for await (info of delegationInfo) {
-
-                        if (info.pool_id == poolId) {
+                        if (info.pool_id == rtbPoolId) {
                             if (!sinceEpoch) { sinceEpoch = info.active_epoch - 2 }
                         } else {
                             sinceEpoch = ''
